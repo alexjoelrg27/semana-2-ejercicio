@@ -1,0 +1,82 @@
+name: CI/CD - Validacion y GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Validacion (HTML5, accesibilidad, seguridad y responsividad)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar HTML5 y HTML semantico
+        run: npm run test:html
+
+      - name: Instalar navegador para pruebas
+        run: npx playwright install --with-deps chromium
+
+      - name: Accesibilidad WCAG 2.1 AA
+        run: npm run test:a11y
+
+      - name: Seguridad de enlaces externos
+        run: npm run test:links
+
+      - name: Adaptabilidad y responsividad
+        run: npm run test:responsive
+
+      - name: Subir capturas de pantalla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-responsividad
+          path: test-results/
+          if-no-files-found: ignore
+
+  deploy:
+    name: Publicar en GitHub Pages
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Subir artefacto del sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

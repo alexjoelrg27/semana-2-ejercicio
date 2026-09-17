@@ -1,0 +1,21 @@
+{
+  "name": "semana-2-ejercicio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ejercicio 2 - Formulario de registro accesible con CI/CD y GitHub Pages",
+  "scripts": {
+    "test:html": "html-validate \"*.html\"",
+    "test:a11y": "node tests/a11y.js",
+    "test:links": "node tests/link-security.js",
+    "test:responsive": "playwright test --config=playwright.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "html-validate": "^9.3.0",
+    "http-server": "^14.1.1",
+    "pa11y": "^8.0.0"
+  },
+  "allowScripts": {
+    "puppeteer@22.15.0": true
+  }
+}
